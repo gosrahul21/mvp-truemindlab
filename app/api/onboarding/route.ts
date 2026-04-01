@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { defaultOnboardingData, type OnboardingData, type OnboardingProfile } from '@/lib/onboarding-types'
 import { supabaseRest } from '@/lib/supabase-rest'
+import { createSupabaseRouteHandlerClient } from '@/lib/supabase/route-handler'
 
 type OnboardingDbRow = {
   org_id: string
@@ -51,6 +52,13 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const supabase = await createSupabaseRouteHandlerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized user context required' }, { status: 401 })
+    }
+
     const body = (await request.json()) as {
       orgId: string
       currentStep: number
@@ -75,11 +83,36 @@ export async function PUT(request: NextRequest) {
             name: body.data.businessName || null,
             website_url: body.data.websiteUrl || null,
             primary_offer: body.data.primaryOffer || null,
-            location: body.data.businessLocation || null,
+            // location: body.data.businessLocation || null,
           },
         ]),
       }
     )
+
+    // Check if the user is already assigned to this organization
+    const members = await supabaseRest<any[]>(
+      `organization_members?select=id&user_id=eq.${user.id}&organization_id=eq.${body.orgId}&limit=1`
+    )
+
+    // If not assigned, assign them as the org_owner naturally during onboarding creation
+    if (!members.length) {
+      await supabaseRest(
+        'organization_members',
+        {
+          method: 'POST',
+          headers: {
+            Prefer: 'return=minimal',
+          },
+          body: JSON.stringify([
+            {
+              user_id: user.id,
+              organization_id: body.orgId,
+              role: 'org_owner',
+            },
+          ]),
+        }
+      )
+    }
 
     const completedAt = body.status === 'completed' ? new Date().toISOString() : null
 

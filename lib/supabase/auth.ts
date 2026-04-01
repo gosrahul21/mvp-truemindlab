@@ -9,7 +9,6 @@ export type SignUpResult =
   | {
       needsEmailConfirmation: false
       user: User
-      organization: Database['public']['Tables']['organizations']['Row']
     }
 
 export async function signUp(
@@ -18,12 +17,10 @@ export async function signUp(
     email,
     password,
     fullName,
-    orgName,
   }: {
     email: string
     password: string
     fullName: string
-    orgName: string
   }
 ): Promise<SignUpResult> {
   const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -44,24 +41,9 @@ export async function signUp(
     .insert({ id: userId, full_name: fullName })
   if (profileError) throw profileError
 
-  const { data: orgData, error: orgError } = await supabase
-    .from('organizations')
-    .insert({ name: orgName })
-    .select()
-    .single()
-  if (orgError) throw orgError
-
-  const { error: memberError } = await supabase.from('organization_members').insert({
-    user_id: userId,
-    organization_id: orgData.id,
-    role: 'org_owner',
-  })
-  if (memberError) throw memberError
-
   return {
     needsEmailConfirmation: false,
     user: authData.user!,
-    organization: orgData,
   }
 }
 

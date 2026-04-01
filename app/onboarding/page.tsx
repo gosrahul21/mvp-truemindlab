@@ -30,18 +30,10 @@ type WizardState = {
   data: OnboardingData
 }
 
+import { supabase } from '@/lib/supabase/client'
+
+// local testing fallback
 const localStorageKey = 'closeflow_onboarding_v1'
-
-function getOrCreateOrgId() {
-  if (typeof window === 'undefined') return ''
-
-  const existing = window.localStorage.getItem('closeflow_org_id')
-  if (existing) return existing
-
-  const id = crypto.randomUUID()
-  window.localStorage.setItem('closeflow_org_id', id)
-  return id
-}
 
 function StepInput({
   label,
@@ -88,22 +80,21 @@ export default function OnboardingPage() {
   )
 
   useEffect(() => {
-    const orgId = getOrCreateOrgId()
-    setState((previous) => ({ ...previous, orgId }))
+    const initOnboarding = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const localStateRaw = window.localStorage.getItem(localStorageKey)
-    if (localStateRaw) {
-      try {
-        const parsed = JSON.parse(localStateRaw) as WizardState
-        if (parsed?.orgId === orgId) {
-          setState(parsed)
-        }
-      } catch {
-        // Ignore local parse errors and continue remote recovery.
-      }
-    }
+      const { data: membership } = await supabase
+        .from('organization_members')
+        .select('organization_id')
+        .eq('user_id', user.id)
+        .maybeSingle()
 
-    const loadRemoteProfile = async () => {
+      if (!membership) return
+
+      const orgId = (membership as any).organization_id
+      setState((previous) => ({ ...previous, orgId }))
+
       const response = await fetch(`/api/onboarding?orgId=${orgId}`)
       const payload = (await response.json()) as { profile?: WizardState; error?: string }
       if (payload.error || !payload.profile) return
@@ -121,7 +112,7 @@ export default function OnboardingPage() {
       })
     }
 
-    void loadRemoteProfile()
+    void initOnboarding()
   }, [])
 
   const saveProgress = async (nextState: WizardState) => {

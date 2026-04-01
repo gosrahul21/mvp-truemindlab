@@ -13,7 +13,7 @@ const publicRoutes = [
 
 const protectedRouteRoles: Record<string, string[]> = {
   // '/settings': ['org_owner', 'org_admin'],
-  '/billing': ['org_owner', 'org_admin'],
+  // '/billing': ['org_owner', 'org_admin'],
   '/team': ['org_owner', 'org_admin'],
 }
 
@@ -60,12 +60,58 @@ export async function middleware(req: NextRequest) {
       : pathname === route || pathname.startsWith(route + '/')
   )
 
-  if (isPublicRoute) return res
+  if (isPublicRoute) {
+    if (user && pathname === '/') {
+      return redirectPreservingCookies(res, new URL('/dashboard', req.url))
+    }
+    return res
+  }
 
   if (!user) {
     const redirectUrl = new URL('/login', req.url)
     redirectUrl.searchParams.set('redirectTo', pathname)
     return redirectPreservingCookies(res, redirectUrl)
+  }
+
+  let membershipData: any = null;
+
+  const isProfileRoute = pathname.startsWith('/profile');
+
+  if (!isProfileRoute) {
+    // 1. Fetch organization membership
+    const { data: membership } = await supabase
+      .from('organization_members')
+      .select('organization_id, role')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (!membership) {
+      if (pathname !== '/create-workspace') {
+        return redirectPreservingCookies(res, new URL('/create-workspace', req.url))
+      }
+    } else {
+      // 2. Fetch subscription status
+      const { data: subs } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('organization_id', membership.organization_id)
+        .limit(1)
+      
+      const hasSubscription = subs && subs.length > 0;
+
+      if (!hasSubscription) {
+        if (pathname !== '/choose-plan') {
+          return redirectPreservingCookies(res, new URL(`/choose-plan?orgId=${membership.organization_id}`, req.url))
+        }
+      } else {
+        // 3. User is fully onboarded. Prevent them from revisiting the funnel.
+        if (['/create-workspace', '/choose-plan', '/onboarding'].includes(pathname)) {
+          return redirectPreservingCookies(res, new URL('/dashboard', req.url))
+        }
+      }
+    }
+    
+    membershipData = membership;
   }
 
   const protectedPath = Object.keys(protectedRouteRoles).find((route) =>
@@ -75,13 +121,17 @@ export async function middleware(req: NextRequest) {
   if (protectedPath) {
     const allowedRoles = protectedRouteRoles[protectedPath]
 
-    const { data: membership } = await supabase
-      .from('organization_members')
-      .select('role')
-      .eq('user_id', user.id)
-      .maybeSingle()
+    // If membershipData wasn't fetched (e.g., they went to an exempt route that is also protected, though unlikely), fetch it
+    if (!membershipData) {
+      const { data: membership } = await supabase
+        .from('organization_members')
+        .select('role')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      membershipData = membership
+    }
 
-    if (!membership || !allowedRoles.includes(membership.role)) {
+    if (!membershipData || !allowedRoles.includes(membershipData.role)) {
       return redirectPreservingCookies(res, new URL('/dashboard', req.url))
     }
   }

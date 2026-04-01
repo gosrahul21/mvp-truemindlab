@@ -12,9 +12,9 @@ function messageFromUnknown(err: unknown) {
 export async function POST(request: Request) {
   try {
     const supabase = await createSupabaseRouteHandlerClient()
-    const { email, password, fullName, orgName } = await request.json()
+    const { email, password, fullName } = await request.json()
 
-    if (!email || !password || !fullName || !orgName) {
+    if (!email || !password || !fullName) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -22,7 +22,6 @@ export async function POST(request: Request) {
       email,
       password,
       fullName,
-      orgName,
     })
 
     if (result.needsEmailConfirmation) {
@@ -35,7 +34,6 @@ export async function POST(request: Request) {
     return NextResponse.json({
       needsEmailConfirmation: false,
       user: result.user,
-      organization: result.organization,
     })
   } catch (error) {
     console.error('Signup error:', error)
