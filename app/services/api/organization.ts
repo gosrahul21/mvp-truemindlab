@@ -14,8 +14,7 @@ export async function createOrganizationApi(name: string): Promise<{
     }
 
     // 1. Create Organization
-    const { data: orgData, error: orgError } = await supabase
-      .from('organizations')
+    const { data: orgData, error: orgError } = await (supabase.from('organizations') as any)
       .insert({ name } as any) // Using any to bypass TS inference if types are misaligned internally
       .select('*')
       .single()

@@ -17,12 +17,13 @@ export async function POST(request: Request) {
     }
 
     // Insert Subscription
-    const { data, error } = await supabase
-      .from('subscriptions')
+    const { data, error } = await (supabase.from('subscriptions') as any)
       .insert({
         organization_id: orgId,
         plan_id: planId,
-        status: 'active'
+        status: 'active',
+        current_period_start: new Date().toISOString(),
+        current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
       })
       .select()
       .single()

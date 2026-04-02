@@ -63,6 +63,17 @@ export interface Subscription {
   updated_at: string
 }
 
+export interface VoiceSettings {
+  id: string
+  organization_id: string
+  preset_id: string
+  language?: string | null
+  prompt?: string | null
+  vapi_config?: any | null
+  created_at: string
+  updated_at: string
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -95,6 +106,20 @@ export interface Database {
         Insert: Omit<Subscription, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<Subscription, 'id' | 'created_at' | 'updated_at'>>
         Relationships: []
+      }
+      voice_settings: {
+        Row: VoiceSettings
+        Insert: Omit<VoiceSettings, 'id' | 'created_at' | 'updated_at'> & { language?: string | null }
+        Update: Partial<Omit<VoiceSettings, 'id' | 'created_at' | 'updated_at'>> & { language?: string | null }
+        Relationships: [
+          {
+            foreignKeyName: "voice_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

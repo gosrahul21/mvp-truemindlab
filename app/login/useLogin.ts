@@ -1,6 +1,7 @@
 import { signInWithGoogle } from "@/lib/supabase/oauth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { loginApi } from '@/app/services/api/login';
 
 const authErrors: Record<string, string> = {
     oauth: 'Google sign-in failed. Try again.',

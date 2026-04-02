@@ -75,7 +75,7 @@ export default function TeamSettingsPage() {
             </div>
 
             {/* Role Badge + Dropdown */}
-            <div className="relative flex items-center gap-3" ref={(el) => (menuRefs.current[member.email] = el)}>
+            <div className="relative flex items-center gap-3" ref={(el) => { menuRefs.current[member.email] = el; }}>
               <span
                 className={`rounded-full px-3 py-1 text-xs font-medium ${
                   member.role === 'Owner'
