@@ -145,18 +145,20 @@ export default function OnboardingPage() {
       case 2:
         return /^https?:\/\/.+/i.test(data.websiteUrl.trim())
       case 3:
-        return data.primaryOffer.trim().length >= 3
+        return Boolean(data.industry)
       case 4:
-        return data.businessLocation.trim().length >= 2
+        return data.primaryOffer.trim().length >= 3
       case 5:
-        return Boolean(data.toneStyle)
+        return data.businessLocation.trim().length >= 2
       case 6:
-        return data.bookingMethod === 'internal_placeholder' || /^https?:\/\/.+/i.test(data.bookingLink.trim())
+        return Boolean(data.toneStyle)
       case 7:
-        return Boolean(data.voicePreset)
+        return data.bookingMethod === 'internal_placeholder' || /^https?:\/\/.+/i.test(data.bookingLink.trim())
       case 8:
-        return data.communication.smsEnabled || data.communication.emailEnabled || data.communication.voiceEnabled
+        return Boolean(data.voicePreset)
       case 9:
+        return data.communication.smsEnabled || data.communication.emailEnabled || data.communication.voiceEnabled
+      case 10:
         return data.email.fromName.trim().length > 1 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.fromEmail)
       default:
         return true
@@ -220,6 +222,14 @@ export default function OnboardingPage() {
     completed: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
   }[state.status]
 
+  const industryOptions = [
+    { value: 'real_estate', label: 'Real Estate' },
+    { value: 'medspa', label: 'Medspa' },
+    { value: 'doctor', label: 'Doctor' },
+    { value: 'salon', label: 'Salon' },
+    { value: 'general', label: 'General' },
+  ]
+
   const renderStep = () => {
     const data = state.data
     switch (state.currentStep) {
@@ -228,10 +238,28 @@ export default function OnboardingPage() {
       case 2:
         return <StepInput label="Website URL" value={data.websiteUrl} onChange={(value) => updateData({ websiteUrl: value })} placeholder="https://acmedental.com" type="url" />
       case 3:
-        return <StepInput label="Primary offer" value={data.primaryOffer} onChange={(value) => updateData({ primaryOffer: value })} placeholder="Free consultation and whitening package" />
+        return (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {industryOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => updateData({ industry: option.value })}
+                className={`cursor-pointer rounded-xl border p-4 text-left text-sm font-medium transition ${
+                  data.industry === option.value
+                    ? 'border-gray-900 bg-gray-900 text-white'
+                    : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-[#11192d] dark:text-gray-200 dark:hover:bg-[#14203a]'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        )
       case 4:
-        return <StepInput label="Business location" value={data.businessLocation} onChange={(value) => updateData({ businessLocation: value })} placeholder="Austin, TX" />
+        return <StepInput label="Primary offer" value={data.primaryOffer} onChange={(value) => updateData({ primaryOffer: value })} placeholder="Free consultation and whitening package" />
       case 5:
+        return <StepInput label="Business location" value={data.businessLocation} onChange={(value) => updateData({ businessLocation: value })} placeholder="Austin, TX" />
+      case 6:
         return (
           <div className="grid gap-3 sm:grid-cols-2">
             {toneOptions.map((option) => (
@@ -249,7 +277,7 @@ export default function OnboardingPage() {
             ))}
           </div>
         )
-      case 6:
+      case 7:
         return (
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
@@ -283,7 +311,7 @@ export default function OnboardingPage() {
             />
           </div>
         )
-      case 7:
+      case 8:
         return (
           <div className="grid gap-3 sm:grid-cols-2">
             {voiceOptions.map((option) => (
@@ -301,7 +329,7 @@ export default function OnboardingPage() {
             ))}
           </div>
         )
-      case 8:
+      case 9:
         return (
           <div className="grid gap-3 sm:grid-cols-2">
             {[
@@ -328,7 +356,7 @@ export default function OnboardingPage() {
             ))}
           </div>
         )
-      case 9:
+      case 10:
         return (
           <div className="space-y-4">
             <label className="block">
@@ -354,7 +382,7 @@ export default function OnboardingPage() {
             <StepInput label="Reply-to email" value={data.email.replyToEmail} onChange={(value) => updateData({ email: { ...data.email, replyToEmail: value } })} placeholder="support@closeflow.ai" type="email" />
           </div>
         )
-      case 10:
+      case 11:
         return (
           <div className="space-y-4">
             <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-[#11192d]">

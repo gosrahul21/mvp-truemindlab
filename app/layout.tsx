@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, DM_Sans, DM_Mono, Fraunces } from "next/font/google";
 import { Sora } from "next/font/google";
 import "./globals.css";
-import { LenisProvider } from "@/lib/lenis";
 import { ThemeProvider } from "@/app/components/ThemeProvider";
 import NextTopLoader from 'nextjs-toploader';
 
@@ -23,9 +22,31 @@ const sora = Sora({
   display: "swap",
 });
 
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+});
+
+const dmMono = DM_Mono({
+  variable: "--font-dm-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  weight: ["300", "400"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "CloseFlow AI - AI-Powered Sales Automation",
-  description: "Turn every lead into a booked meeting with CloseFlow AI. Autonomous SMS, voice, and email follow-up that qualifies prospects and books appointments 24/7.",
+  title: "Pulse AI — Clinic Communication Platform",
+  description: "Turn every lead into a booked meeting with Pulse AI. Autonomous SMS, voice, and email follow-up that qualifies prospects and books appointments 24/7.",
 };
 
 export default function RootLayout({
@@ -37,12 +58,11 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} ${dmSans.variable} ${dmMono.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {/* <LenisProvider /> */}
         <NextTopLoader
-          color="#2299DD"
+          color="#4F7EFF"
           initialPosition={0.08}
           crawlSpeed={200}
           height={3}
@@ -50,13 +70,13 @@ export default function RootLayout({
           showSpinner={false}
           easing="ease"
           speed={200}
-          shadow="0 0 10px #2299DD,0 0 5px #2299DD"
+          shadow="0 0 10px #4F7EFF,0 0 5px #4F7EFF"
           template='<div class="bar" role="bar"><div class="peg"></div></div> 
           <div class="spinner" role="spinner"><div class="spinner-icon"></div></div>'
           zIndex={1600}
           showAtBottom={false}
         />
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false}>
           {children}
         </ThemeProvider>
       </body>

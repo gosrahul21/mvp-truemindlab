@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { businessName, websiteUrl, primaryOffer, location } = await request.json()
+    const { businessName, websiteUrl, primaryOffer, location, country } = await request.json()
 
     if (!businessName || typeof businessName !== 'string') {
       return NextResponse.json({ error: 'Business name is required' }, { status: 400 })
@@ -31,6 +31,7 @@ export async function POST(request: Request) {
       new_website_url: websiteUrl || null,
       new_primary_offer: primaryOffer || null,
       new_location: location || null,
+      new_country: country || null,
       owner_id: user.id
     } as any)
 
@@ -45,7 +46,8 @@ export async function POST(request: Request) {
         name: businessName,
         website_url: websiteUrl || null,
         primary_offer: primaryOffer || null,
-        location: location || null
+        location: location || null,
+        country: country || null
       }
     }, { status: 201 })
   } catch (error) {

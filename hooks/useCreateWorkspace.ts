@@ -8,6 +8,7 @@ export function useCreateWorkspace() {
   const [websiteUrl, setWebsiteUrl] = useState('')
   const [primaryOffer, setPrimaryOffer] = useState('')
   const [location, setLocation] = useState('')
+  const [country, setCountry] = useState('us')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -23,7 +24,8 @@ export function useCreateWorkspace() {
         businessName: businessName.trim(),
         websiteUrl: websiteUrl.trim(),
         primaryOffer: primaryOffer.trim(),
-        location: location.trim()
+        location: location.trim(),
+        country: country,
       })
 
       // If they successfully created the workspace, route them to the plan selection
@@ -40,6 +42,7 @@ export function useCreateWorkspace() {
     websiteUrl, setWebsiteUrl,
     primaryOffer, setPrimaryOffer,
     location, setLocation,
+    country, setCountry,
     loading, error,
     handleCreateWorkspace,
   }

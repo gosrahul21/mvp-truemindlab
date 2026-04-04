@@ -21,8 +21,10 @@ export interface Organization {
   id: string
   name: string
   website_url?: string | null
+  industry?: string | null
   primary_offer?: string | null
   location?: string | null
+  country?: string | null
   created_at: string
   updated_at: string
 }
@@ -48,6 +50,8 @@ export interface Plan {
   whatsapp_limit: number
   contacts_limit: number
   keyFeatures: string[]
+  stripe_price_id?: string | null
+  razorpay_plan_id?: string | null
   created_at: string
   updated_at: string
 }
@@ -59,7 +63,17 @@ export interface Subscription {
   status: SubscriptionStatus
   current_period_start: string
   current_period_end: string
+  gateway_customer_id?: string | null
+  gateway_subscription_id?: string | null
+  payment_gateway?: 'stripe' | 'razorpay' | null
   created_at: string
+  updated_at: string
+}
+
+export interface SystemSetting {
+  key: string
+  value: string
+  description?: string | null
   updated_at: string
 }
 
@@ -70,6 +84,61 @@ export interface VoiceSettings {
   language?: string | null
   prompt?: string | null
   vapi_config?: any | null
+  created_at: string
+  updated_at: string
+}
+
+export interface OrganizationKnowledge {
+  id: string
+  organization_id: string
+  booking_url?: string | null
+  booking_provider?: 'google_calendar' | 'calendly' | 'zoho' | 'teams' | null
+  faqs?: string | null
+  target_audience?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AgentMasterTemplate {
+  id: string
+  industry: string
+  channel: 'voice' | 'whatsapp' | 'email'
+  use_case: string
+  prompt_template: string
+  created_at: string
+}
+
+export interface OrganizationAgent {
+  id: string
+  organization_id: string
+  name: string
+  agent_type: 'inbound' | 'outbound'
+  channel: 'voice' | 'whatsapp' | 'email'
+  use_case?: string | null
+  language?: string | null
+  system_prompt?: string | null
+  provider_config?: any | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface OrganizationCommunication {
+  id: string
+  organization_id: string
+  twilio_account_sid?: string | null
+  twilio_auth_token?: string | null
+  twilio_phone_number?: string | null
+  twilio_voice_number?: string | null
+  twilio_use_own_number: boolean
+  twilio_provisioning_status?: 'none' | 'pending' | 'provisioned' | null
+  whatsapp_provider?: 'twilio' | 'meta' | null
+  whatsapp_api_key?: string | null
+  whatsapp_phone_number?: string | null
+  email_provider?: 'sendgrid' | 'postmark' | 'ses' | 'smtp' | null
+  email_api_key?: string | null
+  email_from_address?: string | null
+  email_from_name?: string | null
   created_at: string
   updated_at: string
 }
@@ -121,6 +190,54 @@ export interface Database {
           }
         ]
       }
+      agent_master_templates: {
+        Row: AgentMasterTemplate
+        Insert: Omit<AgentMasterTemplate, 'id' | 'created_at'>
+        Update: Partial<Omit<AgentMasterTemplate, 'id' | 'created_at'>>
+        Relationships: []
+      }
+      organization_knowledge: {
+        Row: OrganizationKnowledge
+        Insert: Omit<OrganizationKnowledge, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<OrganizationKnowledge, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: [
+          {
+            foreignKeyName: "organization_knowledge_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      organization_agents: {
+        Row: OrganizationAgent
+        Insert: Omit<OrganizationAgent, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<OrganizationAgent, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: [
+          {
+            foreignKeyName: "organization_agents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      organization_communication: {
+        Row: OrganizationCommunication
+        Insert: Omit<OrganizationCommunication, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<OrganizationCommunication, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: [
+          {
+            foreignKeyName: "organization_communication_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -133,6 +250,7 @@ export interface Database {
           new_website_url: string | null
           new_primary_offer: string | null
           new_location: string | null
+          new_country: string | null
           owner_id: string
         }
         Returns: void

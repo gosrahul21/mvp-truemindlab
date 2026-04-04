@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS organizations (
   website_url text,
   primary_offer text,
   location text,
+  country text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -218,6 +219,7 @@ CREATE OR REPLACE FUNCTION create_organization_atomic(
   new_website_url text,
   new_primary_offer text,
   new_location text,
+  new_country text,
   owner_id uuid
 )
 RETURNS void
@@ -226,13 +228,14 @@ SECURITY DEFINER
 AS $$
 BEGIN
   -- Insert the organization
-  INSERT INTO organizations (id, name, website_url, primary_offer, location)
+  INSERT INTO organizations (id, name, website_url, primary_offer, location, country)
   VALUES (
     org_id, 
     new_name, 
     new_website_url, 
     new_primary_offer, 
-    new_location
+    new_location,
+    new_country
   );
 
   -- Insert the member

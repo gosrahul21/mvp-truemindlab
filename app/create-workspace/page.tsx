@@ -12,6 +12,7 @@ export default function CreateWorkspacePage() {
     websiteUrl, setWebsiteUrl,
     primaryOffer, setPrimaryOffer,
     location, setLocation,
+    country, setCountry,
     loading, error,
     handleCreateWorkspace,
   } = useCreateWorkspace()
@@ -28,7 +29,7 @@ export default function CreateWorkspacePage() {
           <div className="text-center">
             <h2 className="mt-6 text-3xl font-extrabold text-white">Create your workspace</h2>
             <p className="mt-2 text-sm text-gray-400">
-              Welcome to Follow AI! Let's get started by setting up your organization.
+              Welcome to Follow AI! Let&apos;s get started by setting up your organization.
             </p>
           </div>
 
@@ -92,8 +93,30 @@ export default function CreateWorkspacePage() {
               </div>
 
               <div>
+                <label htmlFor="country" className="block text-sm font-medium text-gray-300 mb-1">
+                  Country *
+                </label>
+                <select
+                  id="country"
+                  name="country"
+                  required
+                  className="appearance-none relative block w-full px-4 py-3 border border-gray-700 text-white bg-gray-900/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:z-10 sm:text-sm transition-all"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                >
+                  <option value="us">🇺🇸 United States</option>
+                  <option value="india">🇮🇳 India</option>
+                  <option value="uk">🇬🇧 United Kingdom</option>
+                  <option value="ca">🇨🇦 Canada</option>
+                  <option value="au">🇦🇺 Australia</option>
+                  <option value="sg">🇸🇬 Singapore</option>
+                  <option value="other">🌍 Other</option>
+                </select>
+              </div>
+
+              <div>
                 <label htmlFor="location" className="block text-sm font-medium text-gray-300 mb-1">
-                  Location
+                  City / State
                 </label>
                 <input
                   id="location"

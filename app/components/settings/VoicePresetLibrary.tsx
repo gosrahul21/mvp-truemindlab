@@ -81,9 +81,6 @@ export default function VoicePresetLibrary({
               <div className="pr-8">
                 <p className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                   {preset.name}
-                  <span className="inline-flex items-center rounded-md bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400 capitalize">
-                    {preset.provider}
-                  </span>
                 </p>
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {preset.tone}

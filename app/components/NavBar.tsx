@@ -98,7 +98,7 @@ useEffect(() => {
               onClick={() => router.push('/login')}
               className="px-7 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 hover:-translate-y-px active:translate-y-0 transition-all duration-200"
             >
-              Get Started Free
+              Get Started
             </MagneticButton>
           </div>
 
@@ -165,7 +165,7 @@ useEffect(() => {
                   }}
                   className="w-full py-4 text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl shadow-xl"
                 >
-                  Get Started Free
+                  Get Started
                 </button>
               </div>
             </div>

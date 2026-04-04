@@ -23,6 +23,7 @@ export type EmailSetup = {
 export type OnboardingData = {
   businessName: string
   websiteUrl: string
+  industry: string
   primaryOffer: string
   businessLocation: string
   toneStyle: ToneStyle
@@ -41,11 +42,12 @@ export type OnboardingProfile = {
   completedAt?: string | null
 }
 
-export const TOTAL_ONBOARDING_STEPS = 10
+export const TOTAL_ONBOARDING_STEPS = 11
 
 export const defaultOnboardingData: OnboardingData = {
   businessName: '',
   websiteUrl: '',
+  industry: 'general',
   primaryOffer: '',
   businessLocation: '',
   toneStyle: 'professional',

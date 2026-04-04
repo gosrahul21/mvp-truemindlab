@@ -82,8 +82,9 @@ export async function PUT(request: NextRequest) {
             id: body.orgId,
             name: body.data.businessName || null,
             website_url: body.data.websiteUrl || null,
+            industry: body.data.industry || null,
             primary_offer: body.data.primaryOffer || null,
-            // location: body.data.businessLocation || null,
+            location: body.data.businessLocation || null,
           },
         ]),
       }

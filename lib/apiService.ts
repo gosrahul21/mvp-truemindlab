@@ -3,6 +3,7 @@ export interface CreateOrganizationParams {
   websiteUrl: string
   primaryOffer: string
   location: string
+  country: string
 }
 
 export async function createOrganizationAPI(params: CreateOrganizationParams) {
