@@ -40,17 +40,20 @@ export default function CreateLeadModal({ onClose, onCreated }: CreateLeadModalP
         .single()
       if (!membership) throw new Error('No organization found')
 
-      const { error: insertError } = await (supabase.from('leads') as any).insert({
-        organization_id: membership.organization_id,
-        created_by: user.id,
-        name: name.trim(),
-        phone: phone.trim() || null,
-        source: source.toLowerCase().replace(' ', '_'),
-        reason: reason || null,
-        notes: notes.trim() || null,
-        status: 'new',
-        follow_up_enrolled: true,
-      })
+      const { error: insertError } = await (supabase.from('leads') as any).upsert(
+        {
+          organization_id: membership.organization_id,
+          created_by: user.id,
+          name: name.trim(),
+          phone: phone.trim() || null,
+          source: source.toLowerCase().replace(' ', '_'),
+          reason: reason || null,
+          notes: notes.trim() || null,
+          status: 'new',
+          follow_up_enrolled: true,
+        },
+        { onConflict: 'organization_id,phone' } // Prevent duplicates
+      )
       if (insertError) throw insertError
 
       onCreated?.({ name, phone, source, reason, notes })

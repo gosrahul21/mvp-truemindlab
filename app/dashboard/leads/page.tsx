@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { PlusIcon, LeadsIcon } from '@/app/components/dashboard/PulseIcons'
+import { PlusIcon, LeadsIcon, AppointmentsIcon } from '@/app/components/dashboard/PulseIcons'
 import CreateLeadModal from '@/app/components/dashboard/CreateLeadModal'
+import NewAppointmentModal from '@/app/components/dashboard/NewAppointmentModal'
 import { supabase } from '@/lib/supabase/client'
 import { Lead, LeadStatus } from '@/lib/supabase/types'
 
@@ -43,22 +44,27 @@ export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [showBookingModal, setShowBookingModal] = useState(false)
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
+  
   const [filter, setFilter] = useState<FilterKey>('All')
   const [search, setSearch] = useState('')
   const [orgId, setOrgId] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
 
   // Fetch org ID once
   useEffect(() => {
-    async function getOrgId() {
+    async function init() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+      setUserId(user.id)
       const { data } = await (supabase.from('organization_members') as any)
         .select('organization_id')
         .eq('user_id', user.id)
         .single()
       if (data) setOrgId(data.organization_id)
     }
-    getOrgId()
+    init()
   }, [])
 
   // Fetch leads
@@ -76,9 +82,13 @@ export default function LeadsPage() {
 
   useEffect(() => { fetchLeads() }, [fetchLeads])
 
-  const handleLeadCreated = (lead: { name: string; phone: string; source: string; reason: string }) => {
-    // Optimistic update — re-fetch to sync with DB
+  const handleLeadCreated = () => {
     fetchLeads()
+  }
+
+  const openBooking = (lead: Lead) => {
+    setSelectedLead(lead)
+    setShowBookingModal(true)
   }
 
   const counts = {
@@ -229,8 +239,12 @@ export default function LeadsPage() {
                       <span className="text-[12px] text-[#555D72]">{timeAgo(lead.created_at)}</span>
                       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
                         <button className="pulse-btn pulse-btn-ghost !py-1 !px-2.5 !text-[11px]">View</button>
-                        <button className="w-7 h-7 flex items-center justify-center rounded-lg text-[#555D72] hover:text-[#4F7EFF] hover:bg-[#4f7eff10] transition" title="Start follow-up">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 16 16"><path d="M14 8A6 6 0 112 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><path d="M14 8l-2-2M14 8l-2 2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <button 
+                          onClick={() => openBooking(lead)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-[#555D72] hover:text-[#4F7EFF] hover:bg-[#4f7eff10] transition" 
+                          title="Book appointment"
+                        >
+                          <AppointmentsIcon className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -253,6 +267,21 @@ export default function LeadsPage() {
         <CreateLeadModal
           onClose={() => setShowModal(false)}
           onCreated={handleLeadCreated}
+        />
+      )}
+
+      {showBookingModal && orgId && userId && (
+        <NewAppointmentModal
+          orgId={orgId}
+          userId={userId}
+          initialLead={selectedLead}
+          onClose={() => {
+            setShowBookingModal(false)
+            setSelectedLead(null)
+          }}
+          onCreated={() => {
+            fetchLeads()
+          }}
         />
       )}
     </div>

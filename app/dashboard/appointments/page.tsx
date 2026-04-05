@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { AppointmentsIcon, PlusIcon } from '@/app/components/dashboard/PulseIcons'
 import { supabase } from '@/lib/supabase/client'
-import { Appointment, AppointmentStatus, LeadChannel } from '@/lib/supabase/types'
+import { Appointment, AppointmentStatus } from '@/lib/supabase/types'
+import NewAppointmentModal from '@/app/components/dashboard/NewAppointmentModal'
 
 const statusConfig: Record<AppointmentStatus, { label: string; color: string; bg: string; border: string }> = {
   confirmed:  { label: 'Confirmed',  color: '#22D3A8', bg: '#22d3a810', border: '#22d3a830' },
@@ -48,144 +49,6 @@ function formatScheduled(iso: string) {
 
 type FilterKey = 'All' | AppointmentStatus
 
-// --- New Appointment Modal ---
-function NewAppointmentModal({ orgId, userId, onClose, onCreated }: {
-  orgId: string; userId: string; onClose: () => void; onCreated: () => void
-}) {
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [doctor, setDoctor] = useState('Dr. Mehta')
-  const [channel, setChannel] = useState<LeadChannel>('whatsapp')
-  const [date, setDate] = useState('')
-  const [time, setTime] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!name || !date || !time) { setError('Name, date and time are required.'); return }
-    setSaving(true); setError('')
-    try {
-      const scheduledAt = new Date(`${date}T${time}`).toISOString()
-
-      // Step 1: Create (or upsert) a lead record so this patient
-      // is tracked in the pipeline and eligible for campaigns/follow-ups.
-      const { data: leadData, error: leadErr } = await (supabase.from('leads') as any)
-        .insert({
-          organization_id: orgId,
-          created_by: userId,
-          name: name.trim(),
-          phone: phone.trim() || null,
-          source: 'other',              // booked directly — no inbound channel
-          reason: 'Appointment booked',
-          status: 'booked',             // already booked — skip earlier stages
-          follow_up_enrolled: false,    // paused until appointment concludes
-        })
-        .select('id')
-        .single()
-      if (leadErr) throw leadErr
-
-      // Step 2: Create the appointment linked to that lead.
-      // When status → completed  : trigger feedback campaign
-      // When status → no_show    : re-enrol lead in follow-up sequence
-      const { error: apptErr } = await (supabase.from('appointments') as any).insert({
-        organization_id: orgId,
-        created_by: userId,
-        lead_id: leadData.id,           // link to lead for campaign triggers
-        patient_name: name.trim(),
-        patient_phone: phone.trim() || null,
-        doctor: doctor || null,
-        channel,
-        scheduled_at: scheduledAt,
-        status: 'confirmed',
-        confirmation_sent: true,
-      })
-      if (apptErr) throw apptErr
-
-      onCreated()
-      onClose()
-    } catch (err: any) {
-      setError(err.message || 'Failed to book appointment.')
-    } finally { setSaving(false) }
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div className="w-full max-w-[440px] bg-[#111520] border border-[#ffffff14] rounded-2xl shadow-2xl shadow-black/60 animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#ffffff0f]">
-          <div>
-            <div className="text-[15px] font-semibold text-[#E8EBF2]">New appointment</div>
-            <div className="text-[11px] text-[#555D72] mt-0.5">Book a slot for a patient</div>
-          </div>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-[#555D72] hover:text-[#E8EBF2] hover:bg-[#ffffff0a] transition">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 14 14"><path d="M1 13L13 1M1 1l12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#8B92A8]">Patient name <span className="text-[#FF6B6B]">*</span></label>
-              <input className="pulse-input" placeholder="e.g. Rahul Sharma" value={name} onChange={e => setName(e.target.value)} autoFocus />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#8B92A8]">Phone</label>
-              <input className="pulse-input" placeholder="+91 98765 43210" value={phone} onChange={e => setPhone(e.target.value)} type="tel" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#8B92A8]">Doctor</label>
-              <select className="pulse-input appearance-none" value={doctor} onChange={e => setDoctor(e.target.value)}>
-                <option>Dr. Mehta</option>
-                <option>Dr. Shah</option>
-              </select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#8B92A8]">Channel</label>
-              <select className="pulse-input appearance-none" value={channel} onChange={e => setChannel(e.target.value as LeadChannel)}>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="sms">SMS</option>
-                <option value="voice">Voice</option>
-                <option value="email">Email</option>
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#8B92A8]">Date <span className="text-[#FF6B6B]">*</span></label>
-              <input className="pulse-input" type="date" value={date} onChange={e => setDate(e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#8B92A8]">Time <span className="text-[#FF6B6B]">*</span></label>
-              <input className="pulse-input" type="time" value={time} onChange={e => setTime(e.target.value)} />
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-[#22d3a80a] border border-[#22d3a820] rounded-xl">
-            <div className="flex-1">
-              <div className="text-[12px] font-medium text-[#E8EBF2]">Send confirmation message</div>
-              <div className="text-[10px] text-[#555D72] mt-0.5">Agent will send a confirmation via {channel}</div>
-            </div>
-            <div className="relative w-11 h-6 rounded-full bg-[#4F7EFF] shrink-0">
-              <span className="absolute top-[3px] left-[3px] w-[18px] h-[18px] bg-white rounded-full shadow translate-x-5" />
-            </div>
-          </div>
-          {error && <div className="text-[12px] text-[#FF6B6B] bg-[#ff6b6b10] border border-[#ff6b6b30] rounded-lg px-3 py-2">{error}</div>}
-          <div className="flex gap-2 pt-1">
-            <button type="button" onClick={onClose} className="pulse-btn pulse-btn-ghost flex-1 justify-center">Cancel</button>
-            <button type="submit" disabled={saving} className="pulse-btn pulse-btn-primary flex-1 justify-center">
-              {saving ? <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> : 'Book appointment'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-// --- Main Page ---
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
