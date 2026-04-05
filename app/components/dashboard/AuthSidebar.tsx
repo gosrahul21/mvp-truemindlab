@@ -51,7 +51,7 @@ const sections = [
     label: 'Workspace',
     items: [
       { label: 'Settings', href: '/settings', icon: SettingsIcon },
-      { label: 'Billing', href: '/billing', icon: BillingIcon },
+      { label: 'Billing', href: '/dashboard/billing', icon: BillingIcon },
     ]
   }
 ]

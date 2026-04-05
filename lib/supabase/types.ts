@@ -68,6 +68,7 @@ export interface Subscription {
   payment_gateway?: 'stripe' | 'razorpay' | null
   created_at: string
   updated_at: string
+  plans?: Plan // Added to support related plan fetching
 }
 
 export interface SystemSetting {

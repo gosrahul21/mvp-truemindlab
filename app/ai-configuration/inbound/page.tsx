@@ -13,7 +13,7 @@ type BehaviourToggle = {
 type Channel = {
   id: string
   label: string
-  icon: React.ComponentType<{ className?: string }>
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
   color: string
   connected: boolean
   numberLabel: string

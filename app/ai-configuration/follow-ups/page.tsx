@@ -13,7 +13,7 @@ type TriggerRule = {
 type Channel = {
   id: string
   label: string
-  icon: React.ComponentType<{ className?: string }>
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
   color: string
   enabled: boolean
   tag: string
