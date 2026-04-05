@@ -18,7 +18,8 @@ import {
   CampaignIcon,
   FeedbackIcon,
   SettingsIcon,
-  BillingIcon
+  BillingIcon,
+  NotificationIcon
 } from './PulseIcons'
 
 type NavItem = {
@@ -35,6 +36,7 @@ const sections = [
       { label: 'Dashboard', href: '/dashboard', icon: DashboardIcon },
       { label: 'Leads', href: '/dashboard/leads', icon: LeadsIcon, badge: 12 },
       { label: 'Appointments', href: '/dashboard/appointments', icon: AppointmentsIcon },
+      // { label: 'Notifications', href: '/dashboard/notifications', icon: NotificationIcon, badge: 3 },
     ]
   },
   {
@@ -51,7 +53,7 @@ const sections = [
     label: 'Workspace',
     items: [
       { label: 'Settings', href: '/settings', icon: SettingsIcon },
-      { label: 'Billing', href: '/dashboard/billing', icon: BillingIcon },
+      { label: 'Usage & Billing', href: '/dashboard/billing', icon: BillingIcon },
     ]
   }
 ]

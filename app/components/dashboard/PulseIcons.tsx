@@ -119,3 +119,10 @@ export const EmailIcon = ({ className = "w-4 h-4", style }: IconProps) => (
     <path d="M2 7l7 5 7-5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 )
+
+export const NotificationIcon = ({ className = "w-4 h-4", style }: IconProps) => (
+  <svg className={className} style={style} viewBox="0 0 16 16" fill="none">
+    <path d="M8 2a4 4 0 00-4 4v3.5l-1 1.5v1h10v-1l-1-1.5V6a4 4 0 00-4-4z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+    <path d="M6 12.5a2 2 0 004 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+  </svg>
+)
