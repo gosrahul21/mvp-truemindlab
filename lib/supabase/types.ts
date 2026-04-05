@@ -143,6 +143,58 @@ export interface OrganizationCommunication {
   updated_at: string
 }
 
+export type LeadStatus = 'new' | 'contacted' | 'qualified' | 'booked' | 'lost'
+export type LeadChannel = 'whatsapp' | 'sms' | 'voice' | 'email' | 'website' | 'facebook' | 'instagram' | 'referral' | 'other'
+export type AppointmentStatus = 'confirmed' | 'pending' | 'completed' | 'no_show' | 'cancelled'
+
+export interface Lead {
+  id: string
+  organization_id: string
+  created_by?: string | null
+  name: string
+  phone?: string | null
+  email?: string | null
+  source: LeadChannel
+  reason?: string | null
+  notes?: string | null
+  status: LeadStatus
+  follow_up_enrolled: boolean
+  follow_up_sent_at?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Appointment {
+  id: string
+  organization_id: string
+  lead_id?: string | null
+  created_by?: string | null
+  patient_name: string
+  patient_phone?: string | null
+  doctor?: string | null
+  channel: LeadChannel
+  scheduled_at: string
+  status: AppointmentStatus
+  confirmation_sent: boolean
+  notes?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Review {
+  id: string
+  organization_id: string
+  lead_id?: string | null
+  patient_name: string
+  rating: number
+  comment?: string | null
+  channel?: string | null
+  replied: boolean
+  replied_at?: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -233,6 +285,48 @@ export interface Database {
             foreignKeyName: "organization_communication_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      leads: {
+        Row: Lead
+        Insert: Omit<Lead, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Lead, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: [
+          {
+            foreignKeyName: "leads_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      appointments: {
+        Row: Appointment
+        Insert: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Appointment, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: [
+          {
+            foreignKeyName: "appointments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      reviews: {
+        Row: Review
+        Insert: Omit<Review, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Review, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: [
+          {
+            foreignKeyName: "reviews_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           }
